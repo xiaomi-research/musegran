@@ -1,0 +1,85 @@
+# Training artifacts
+wandb/
+exp/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+dist/
+build/
+.ruff_cache/
+.pytest_cache/
+.mypy_cache/
+
+# Environment
+.env
+*.log
+.venv/
+venv/
+env/
+uv.lock
+
+# IDE
+.vscode/
+.idea/
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Pretrained models (download separately, see README)
+pretrained_models/
+*.ckpt
+*.safetensors
+*.pt
+
+# Data files
+*.npy
+*.wav
+data-back/
+data/train_examples_test.jsonl
+
+# Generated inference outputs
+inference_samples/
+
+# Internal only (not for open source)
+paper/
+unwrap_ckpt.py
+
+# Local experiment configs (not tracked)
+configs/training/ablation_*
+
+# Third-party scorer dependencies (clone separately, see README)
+score_tools/songeval/SongEval/
+
+zenodo_upload/
+
+# Internal experiment artifacts (not for open source)
+data/train_musegran_full.jsonl
+data/dataset_configs/
+configs/model/rebuttal/
+configs/training/rebuttal/
+missing_beats.txt
+missing_latents.txt
+scripts/
+train.sh
+train_queue.txt
+unwrap_sao.py
+experiments/
+eval/
+evaluation/
+exp_demos/
+assets/framework-v0.png
+
+# Third-party scorer vendored files (installed separately, see README)
+score_tools/audiobox_aesthetics/cli.py
+score_tools/audiobox_aesthetics/infer.py
+score_tools/audiobox_aesthetics/model/
+score_tools/audiobox_aesthetics/utils.py
+score_tools/songeval/config.yaml
+score_tools/songeval/eval.py
+score_tools/songeval/model.py

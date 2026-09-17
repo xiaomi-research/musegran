@@ -1,0 +1,148 @@
+# MuseGran-Co model configuration (control-oriented: text + key + beat + segment structure)
+# This defines the complete model architecture: VAE pretransform, conditioners, and DiT backbone.
+
+model_type: diffusion_cond
+sample_size: 7938050       # max audio samples (44100 * 180s = ~3 min)
+sample_rate: 44100
+audio_channels: 2          # stereo
+
+model:
+  io_channels: 64          # latent channels after VAE encoding
+
+  # --- VAE Pretransform (latent encoder/decoder) ---
+  pretransform:
+    type: autoencoder
+    iterate_batch: true
+    config:
+      latent_dim: 64
+      downsampling_ratio: 2048   # 44100 Hz / 2048 ≈ 21.5 latent frames/sec
+      io_channels: 2
+      encoder:
+        type: oobleck
+        requires_grad: false
+        config:
+          in_channels: 2
+          channels: 128
+          c_mults: [1, 2, 4, 8, 16]
+          strides: [2, 4, 4, 8, 8]
+          latent_dim: 128
+          use_snake: true
+      decoder:
+        type: oobleck
+        config:
+          out_channels: 2
+          channels: 128
+          c_mults: [1, 2, 4, 8, 16]
+          strides: [2, 4, 4, 8, 8]
+          latent_dim: 64
+          use_snake: true
+          final_tanh: false
+      bottleneck:
+        type: vae
+
+  # --- Conditioning System ---
+  conditioning:
+    cond_dim: 768            # shared projection dimension for cross-attn conditioners
+
+    configs:
+      # Text conditioners (cross-attention)
+      - id: prompt
+        type: t5
+        config:
+          t5_model_name: t5-base
+          max_length: 128
+
+      - id: glap-text
+        type: glap-text
+        config:
+          d_model: 1024
+
+      # Duration (cross-attention + global)
+      - id: seconds_start
+        type: int
+        config: { min_val: 0, max_val: 512 }
+
+      - id: seconds_total
+        type: int
+        config: { min_val: 0, max_val: 512 }
+
+      # Beat/BPM (input concat)
+      - id: beat
+        type: beat
+        config:
+          output_dim: 16
+
+      # Song structure (cross-attention / input concat)
+      - id: struct-combined-text
+        type: qwen-structure
+        config:
+          d_model: 1024
+          mode: text
+          field: combined_text
+          compress_ratio: 64
+          update_metadata: true
+
+      - id: struct-rms
+        type: emb-structure
+        config:
+          num_words: 6
+          d_model: 64
+          output_dim: 8
+          key_name: rms
+          update_metadata: true
+
+      # Musical key (cross-attention + global)
+      - id: music_key
+        type: music_key
+        config:
+          num_keys: 24
+          d_model: 768
+
+      # Positional encodings (custom embedding injection)
+      - id: bar_pos
+        type: bar_pos
+        config: {}
+
+      - id: beat_pos
+        type: beat_pos
+        config: {}
+
+    # CFG dropout probabilities per conditioner
+    drop_prob:
+      prompt: 0.1
+      glap-text: 0.1
+      music_key: 0.3
+      beat: 0.1
+
+  # --- Diffusion Backbone (DiT) ---
+  diffusion:
+    type: dit
+    diffusion_objective: v    # v-prediction
+
+    # Conditioner routing: which conditioner goes to which DiT input
+    cross_attention_cond_ids: [prompt, glap-text, struct-combined-text, seconds_start, seconds_total, music_key]
+    global_cond_ids: [seconds_start, seconds_total, music_key]
+    input_concat_ids: [beat, struct-rms]
+    custom_emb_ids: [bar_pos, beat_pos]
+
+    # DiT architecture
+    config:
+      io_channels: 64
+      embed_dim: 1536
+      depth: 24
+      num_heads: 24
+      cond_token_dim: 768
+      input_concat_dim: 24
+      project_cond_tokens: false
+      global_cond_dim: 2304       # 768 * 3 (seconds_start + seconds_total + music_key)
+      transformer_type: continuous_transformer
+
+      # MusicRoPE positional encoding
+      rotary_pos: music_rope
+      group_order: [bar, beat, seq]
+      bar_base: 2000
+      beat_base: 5000
+      dim_split: [2, 2, 4]
+      use_period_pos: true
+      period_bars: 8
+

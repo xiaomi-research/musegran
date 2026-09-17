@@ -1,0 +1,17 @@
+{
+  "prompt": "A calming and introspective journey through acoustic instruments",
+  "key": "F major",
+  "bpm": 76.0,
+  "duration_seconds": 40.0,
+  "structure_segments_json": [
+    {"label": "intro", "start": 0.0, "end": 13.3, "rms_dB": -18.8,
+     "style": "gentle fingerpicked folk", "rhythm": "steady, flowing pulse",
+     "emotions": "nostalgia, introspection", "instruments": "acoustic guitar"},
+    {"label": "verse", "start": 13.3, "end": 26.6, "rms_dB": -17.5,
+     "style": "warm strummed guitars with soft piano", "rhythm": "steady, flowing pulse",
+     "emotions": "calm, reflective", "instruments": "acoustic guitar, piano"},
+    {"label": "chorus", "start": 26.6, "end": 40.0, "rms_dB": -16.2,
+     "style": "full arrangement with light drums", "rhythm": "steady, uplifting pulse",
+     "emotions": "warm, hopeful", "instruments": "acoustic guitar, piano, drums"}
+  ]
+}

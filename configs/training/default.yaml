@@ -1,0 +1,78 @@
+# MuseGran training configuration
+# CLI overrides: python train.py --config configs/training/default.yaml --batch_size 16
+
+# --- Paths ---
+experiment_id: musegran_default  # leave empty to use wandb run ID as experiment folder name
+save_dir: ./exp/
+model_config: ./configs/model/musegran_ft.yaml
+pretrained_ckpt: ./pretrained_models/diffusion/musegran_co.ckpt  # diffusion model checkpoint (optional, for fine-tuning)
+vae_ckpt: ./pretrained_models/vae/vae_sr.ckpt    # required: VAE for latent encoding and demo decoding
+resume_from: ""                                  # resume training from a Lightning checkpoint
+checkpoint_every_n_steps: 1000
+weights_export_name: model_weights
+
+# --- Hardware & Training ---
+max_epochs: 20
+batch_size: 8
+num_gpus: 1
+num_nodes: 1
+precision: 16-mixed
+num_workers: 4
+seed: 42
+
+# --- Dataset ---
+dataset:
+  jsonl_path: ./data/train_examples.jsonl
+  use_precomputed_latent: true  # if true, read pre-encoded latent from jsonl field "vae_latent_path"; if false, encode on-the-fly
+  random_crop: true
+
+# --- Conditioner Freezing ---
+# Pretrained backbones (T5/GLAP/Qwen/MuQ) are always frozen.
+# freeze: false (default) — proj_out and null_emb are trainable (normal training)
+# freeze: true — freeze projections too (for LoRA fine-tuning)
+conditioning:
+  freeze: false
+
+# --- LoRA Fine-tuning (disabled by default) ---
+# When enabled, adds PEFT LoRA adapters to DiT. Set conditioning.freeze: true with LoRA.
+lora:
+  enable: false
+  rank: 16
+  alpha: 16
+  target_modules: all-linear
+
+# --- Training Loop ---
+training:
+  mask_padding: true
+  use_ema: true
+
+  # SegAlign: segment-level alignment with external audio encoders (disabled by default)
+  use_segalign: false
+  segalign_names: [glap, condss]  # external encoder names
+  segalign_depths: [10, 10]       # DiT layer indices for projection
+  segalign_coeff: 0.3             # loss weight
+
+  optimizer_configs:
+    diffusion:
+      optimizer:
+        type: AdamW
+        config:
+          lr: 5.0e-05
+          betas: [0.9, 0.999]
+          weight_decay: 0.001
+      scheduler:
+        type: InverseLR
+        config:
+          inv_gamma: 1000000
+          power: 0.5
+          warmup: 0.99
+
+  # Demo generation during training
+  demo:
+    generate_demo: true
+    valid_metrics: [audiobox, songeval]
+    demo_every: 1000
+    demo_steps: 100
+    demo_cond: inference_samples/prompts_qo.jsonl
+    demo_cfg_scales: [5]
+    demo_negative_cond: true
