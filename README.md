@@ -7,7 +7,7 @@
 ### IEEE SLT 2026
 
 [![Demo](https://img.shields.io/badge/Demo-Page-3DDC84.svg)](https://musegran.github.io/demo/)
-[![Model](https://img.shields.io/badge/Model-Zenodo%20-1682D4.svg)](#)
+[![Model](https://img.shields.io/badge/Model-Zenodo%20-1682D4.svg)](https://zenodo.org/records/22804440)
 [![arXiv](https://img.shields.io/badge/arXiv-coming%20soon-b31b1b.svg)](#)
 
 A DiT-based latent diffusion model for long-form instrumental music generation with **multi-granularity conditioning (global, segment, and frame level)** — up to ~180 seconds of 44.1 kHz stereo audio.
@@ -48,7 +48,7 @@ MuseGran provides two model variants:
 
 ### Checkpoints
 
-Download the model weights from the [model release](#) and place them in `pretrained_models/` (model configs are versioned in this repo under `configs/model/`, no download needed):
+Download the model weights from the [model release](https://zenodo.org/records/22804440) and place them in `pretrained_models/` (model configs are versioned in this repo under `configs/model/`, no download needed):
 
 ```
 pretrained_models/
